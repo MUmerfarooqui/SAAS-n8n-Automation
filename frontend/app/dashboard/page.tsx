@@ -8,7 +8,6 @@ import { useEffect, useState } from 'react'
 import { WORKFLOW_TEMPLATES, getTemplatesByCategory, type WorkflowTemplate } from '@/lib/workflowTemplates'
 import { getSupabaseJwt } from '@/lib/supabase'
 
-
 type InstallResponse =
   | { needsAuth: true; authUrl: string; state: string; templateId: string }
   | { activated: true; workflowId: number }
@@ -16,7 +15,7 @@ type InstallResponse =
 
 export default function Dashboard() {
   const { user, profile, loading, signOut } = useAuth()
-  const { workflows, loading: loadingWorkflows } = useWorkflows()
+  const { workflows } = useWorkflows()
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [installingId, setInstallingId] = useState<string | null>(null)
   const router = useRouter()
@@ -35,18 +34,41 @@ export default function Dashboard() {
     router.push('/login')
   }
 
+  // Option B routing. Switch by template.id and call the namespaced endpoint.
   const handleInstallTemplate = async (template: WorkflowTemplate) => {
     try {
       setInstallingId(template.id)
 
       const token = await getSupabaseJwt()
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/workflows/install`, {
+      const api = process.env.NEXT_PUBLIC_API_URL
+      if (!api) {
+        alert('NEXT_PUBLIC_API_URL is not set')
+        return
+      }
+
+      let url: string | null = null
+      switch (template.id) {
+        case 'gmail-ai-responder':
+          url = `${api}/workflows/gmail-ai-responder/install`
+          break
+        case 'gmail-summary-agent':
+          url = `${api}/workflows/gmail-summary-agent/install`
+          break
+        default:
+          // fallback to generic if you keep it around on the backend
+          url = `${api}/workflows/install`
+      }
+
+      const res = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ templateId: template.id }),
+        // For namespaced install endpoints we do not need a body
+        body: url.endsWith('/install') && !url.endsWith('/workflows/install')
+          ? undefined
+          : JSON.stringify({ templateId: template.id }),
       })
 
       const data: InstallResponse = await res.json()
@@ -58,14 +80,12 @@ export default function Dashboard() {
       }
 
       if ('needsAuth' in data && data.needsAuth && data.authUrl) {
-        // Redirect the user to Google to connect Gmail
         window.location.href = data.authUrl
         return
       }
 
       if ('activated' in data && data.activated) {
         alert('Workflow installed and activated')
-        // optional: trigger your useWorkflows() reload
         // router.refresh()
         return
       }
@@ -79,9 +99,8 @@ export default function Dashboard() {
     }
   }
 
-
-  const filteredTemplates = selectedCategory === 'all' 
-    ? WORKFLOW_TEMPLATES 
+  const filteredTemplates = selectedCategory === 'all'
+    ? WORKFLOW_TEMPLATES
     : templatesByCategory[selectedCategory] || []
 
   if (loading) {
@@ -126,7 +145,7 @@ export default function Dashboard() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          
+
           {/* Stats Cards */}
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-3 mb-8">
             <div className="bg-white overflow-hidden shadow rounded-lg">
@@ -221,13 +240,13 @@ export default function Dashboard() {
                           {workflow.status}
                         </span>
                       </div>
-                      
+
                       {workflow.description && (
                         <p className="text-gray-600 text-sm mb-3">
                           {workflow.description}
                         </p>
                       )}
-                      
+
                       <div className="flex justify-between items-center">
                         <span className="text-xs text-gray-500">
                           Created: {new Date(workflow.created_at).toLocaleDateString()}
@@ -288,21 +307,25 @@ export default function Dashboard() {
                           <h3 className="text-lg font-medium text-gray-900">
                             {template.name}
                           </h3>
-                          <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full mt-1 ${
-                            template.difficulty === 'beginner' ? 'bg-green-100 text-green-800' :
-                            template.difficulty === 'intermediate' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-red-100 text-red-800'
-                          }`}>
+                          <span
+                            className={`inline-block px-2 py-1 text-xs font-medium rounded-full mt-1 ${
+                              template.difficulty === 'beginner'
+                                ? 'bg-green-100 text-green-800'
+                                : template.difficulty === 'intermediate'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}
+                          >
                             {template.difficulty}
                           </span>
                         </div>
                       </div>
                     </div>
-                    
+
                     <p className="text-gray-600 text-sm mb-4 leading-relaxed">
                       {template.description}
                     </p>
-                    
+
                     <div className="mb-4">
                       <p className="text-gray-700 text-sm font-medium mb-2">Use Case:</p>
                       <p className="text-gray-600 text-sm">{template.useCase}</p>
@@ -329,7 +352,7 @@ export default function Dashboard() {
                       <button
                         onClick={() => handleInstallTemplate(template)}
                         disabled={installingId === template.id}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-60"
                       >
                         {installingId === template.id ? 'Installing...' : 'Install'}
                       </button>
@@ -345,6 +368,7 @@ export default function Dashboard() {
               )}
             </div>
           </div>
+
         </div>
       </main>
     </div>

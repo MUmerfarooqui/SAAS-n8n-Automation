@@ -1,5 +1,4 @@
 // lib/workflowTemplates.ts
-
 export interface WorkflowTemplate {
   id: string
   name: string
@@ -12,7 +11,6 @@ export interface WorkflowTemplate {
   icon: string
   useCase: string
   config: {
-    // This will map to n8n workflow configuration
     trigger: any
     steps: any[]
     settings: any
@@ -37,36 +35,47 @@ export const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
       steps: [
         { action: 'analyze_email', ai_enabled: true },
         { action: 'generate_reply', model: 'gpt-4' },
-        { action: 'create_draft', destination: 'gmail' }
+        { action: 'create_draft', destination: 'gmail' },
       ],
-      settings: { 
-        check_interval: '5_minutes', 
+      settings: {
+        check_interval: '5_minutes',
         temperature: 0.7,
         max_tokens: 500,
-        reply_tone: 'professional_friendly'
-      }
-    }
+        reply_tone: 'professional_friendly',
+      },
+    },
   },
+
+  // NEW: Gmail Summary Agent
   {
-    id: 'gmail-to-sheets',
-    name: 'Gmail to Google Sheets Logger',
-    description: 'Log important emails to a Google Sheets spreadsheet for tracking',
+    id: 'gmail-summary-agent',
+    name: 'Gmail Summary Automation',
+    description: 'Create a daily AI summary of your inbox and highlight important messages',
     category: 'productivity',
     difficulty: 'beginner',
     estimatedSetupTime: 3,
-    requiredIntegrations: ['gmail', 'google_sheets'],
-    tags: ['email', 'logging', 'spreadsheet'],
+    requiredIntegrations: ['gmail', 'openai'],
+    tags: ['email', 'ai', 'productivity'],
     icon: '📧',
-    useCase: 'Track important emails, client communications, or support requests in an organized spreadsheet.',
+    useCase: 'Get a daily summary of your emails with key highlights and action items.',
     config: {
-      trigger: { type: 'gmail', filter: 'label:important' },
+      // Daily at 23:00. Adjust later in UI if needed.
+      trigger: { type: 'schedule', cron: '0 23 * * *' },
       steps: [
-        { action: 'extract_email_data' },
-        { action: 'append_to_sheet', sheet_id: 'user_configured' }
+        { action: 'fetch_emails', query: 'newer_than:1d in:inbox' },
+        { action: 'rank_importance', ai_enabled: true },
+        { action: 'generate_summary', model: 'gpt-4' },
+        { action: 'create_draft', destination: 'gmail', subject: 'Daily Email Summary' },
       ],
-      settings: { include_attachments: false, extract_sender: true }
-    }
+      settings: {
+        timezone: 'user_timezone',
+        include_attachments: false,
+        extract_senders: true,
+        max_threads: 200,
+      },
+    },
   },
+
   {
     id: 'whatsapp-customer-support',
     name: 'WhatsApp Customer Support Bot',
@@ -83,11 +92,12 @@ export const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
       steps: [
         { action: 'analyze_message', ai_enabled: true },
         { action: 'check_knowledge_base' },
-        { action: 'send_response', fallback_to_human: true }
+        { action: 'send_response', fallback_to_human: true },
       ],
-      settings: { auto_response: true, business_hours_only: false }
-    }
+      settings: { auto_response: true, business_hours_only: false },
+    },
   },
+
   {
     id: 'social-media-scheduler',
     name: 'Social Media Content Scheduler',
@@ -104,11 +114,12 @@ export const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
       steps: [
         { action: 'read_content_calendar', source: 'google_sheets' },
         { action: 'post_to_platforms', platforms: ['twitter', 'linkedin'] },
-        { action: 'mark_as_posted' }
+        { action: 'mark_as_posted' },
       ],
-      settings: { timezone: 'user_timezone', skip_weekends: true }
-    }
+      settings: { timezone: 'user_timezone', skip_weekends: true },
+    },
   },
+
   {
     id: 'expense-tracker',
     name: 'Receipt to Expense Tracker',
@@ -126,11 +137,12 @@ export const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
         { action: 'extract_attachments' },
         { action: 'ocr_processing' },
         { action: 'parse_expense_data' },
-        { action: 'add_to_sheet', sheet_id: 'user_configured' }
+        { action: 'add_to_sheet', sheet_id: 'user_configured' },
       ],
-      settings: { currency: 'USD', categorize_expenses: true }
-    }
+      settings: { currency: 'USD', categorize_expenses: true },
+    },
   },
+
   {
     id: 'meeting-notes-automation',
     name: 'Meeting Notes to Action Items',
@@ -148,21 +160,21 @@ export const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
         { action: 'fetch_meeting_transcript' },
         { action: 'extract_action_items', ai_enabled: true },
         { action: 'create_tasks' },
-        { action: 'notify_participants', via: 'slack' }
+        { action: 'notify_participants', via: 'slack' },
       ],
-      settings: { auto_create_calendar_events: true, reminder_frequency: 'daily' }
-    }
-  }
+      settings: { auto_create_calendar_events: true, reminder_frequency: 'daily' },
+    },
+  },
 ]
 
 export function getTemplatesByCategory() {
-  const categories = [...new Set(WORKFLOW_TEMPLATES.map(t => t.category))]
+  const categories = [...new Set(WORKFLOW_TEMPLATES.map((t) => t.category))]
   return categories.reduce((acc, category) => {
-    acc[category] = WORKFLOW_TEMPLATES.filter(t => t.category === category)
+    acc[category] = WORKFLOW_TEMPLATES.filter((t) => t.category === category)
     return acc
   }, {} as Record<string, WorkflowTemplate[]>)
 }
 
 export function getTemplateById(id: string) {
-  return WORKFLOW_TEMPLATES.find(t => t.id === id)
+  return WORKFLOW_TEMPLATES.find((t) => t.id === id)
 }
