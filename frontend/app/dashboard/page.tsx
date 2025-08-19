@@ -51,8 +51,8 @@ export default function Dashboard() {
         case 'gmail-ai-responder':
           url = `${api}/workflows/gmail-ai-responder/install`
           break
-        case 'gmail-summary-agent':
-          url = `${api}/workflows/gmail-summary-agent/install`
+        case 'gmail-summary':
+          url = `${api}/workflows/gmail-summary/install`
           break
         default:
           // fallback to generic if you keep it around on the backend
