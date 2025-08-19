@@ -106,7 +106,7 @@
     },
     {
       "id": "9a82f5e9-7d0b-430f-9dbb-d8ae0b129dad",
-      "name": "Daily 2PM Trigger and 10PM Dubai",
+      "name": "Daily 7AM Trigger",
       "type": "n8n-nodes-base.scheduleTrigger",
       "position": [
         -40,
@@ -116,7 +116,7 @@
         "rule": {
           "interval": [
             {
-              "triggerAtHour": 14
+              "triggerAtHour": 7
             }
           ]
         }
@@ -141,8 +141,8 @@
       },
       "credentials": {
         "gmailOAuth2": {
-          "id": "YFARhQXJAjbwXjSO",
-          "name": "Vishal Gmail"
+          "id": "placeholder",
+          "name": "Gmail account"
         }
       },
       "typeVersion": 2.1
@@ -190,7 +190,7 @@
       },
       "credentials": {
         "openAiApi": {
-          "id": "ksU2WMcMqe2lPgRw",
+          "id": "placeholder",
           "name": "OpenAi account"
         }
       },
@@ -213,12 +213,12 @@
           "appendAttribution": false,
           "replyToSenderOnly": false
         },
-        "subject": "=ESAgent - {{ new Date(new Date().setDate(new Date().getDate() - 1)).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) }}-00:00 to {{ new Date(new Date().setDate(new Date().getDate())).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) }}-10:00PM"
+        "subject": "=ESAgent - {{ new Date(new Date().setDate(new Date().getDate() - 1)).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) }}-00:00 to {{ new Date(new Date().setDate(new Date().getDate())).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) }}-07:00AM"
       },
       "credentials": {
         "gmailOAuth2": {
-          "id": "YFARhQXJAjbwXjSO",
-          "name": "Vishal Gmail"
+          "id": "placeholder",
+          "name": "Gmail account"
         }
       },
       "typeVersion": 2.1
@@ -257,7 +257,7 @@
   "active": false,
   "pinData": {},
   "settings": {
-    "timezone": "Asia/Dubai",
+    "timezone": "Asia/Kolkata",
     "callerPolicy": "workflowsFromSameOwner",
     "executionOrder": "v1"
   },
