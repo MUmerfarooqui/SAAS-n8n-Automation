@@ -46,7 +46,37 @@ export const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     },
   },
 
-  // NEW: Gmail Summary Agent
+  // NEW: Gmail Labeling Agent
+
+  {
+    id: "gmail-ai-summarizer",
+    name: "Gmail AI Summarizer",
+    description: "Automatically summarize incoming emails into short, actionable digests using AI",
+    category: "email-automation",
+    difficulty: "beginner",
+    estimatedSetupTime: 10,
+    requiredIntegrations: ["gmail", "openai"],
+    tags: ["email", "ai", "productivity", "summarization"],
+    icon: "📝",
+    useCase: "Get concise summaries of long emails so you can scan and prioritize quickly.",
+    config: {
+      trigger: { type: "gmail_new_email", filter: "unread" },
+      steps: [
+        { action: "extract_email_content" },
+        { action: "summarize_email", ai_enabled: true, model: "gpt-4" },
+        { action: "send_summary", destination: "gmail", method: "forward_to_self" }
+    ],
+    settings: {
+      check_interval: "5_minutes",
+      temperature: 0.3,
+      max_tokens: 200,
+      summary_style: "bullet_points",
+      summary_length: "short"
+    }
+  }
+},
+
+
   {
     id: 'gmail-summary-agent',
     name: 'Gmail Summary Automation',

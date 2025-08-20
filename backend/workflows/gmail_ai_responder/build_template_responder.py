@@ -29,7 +29,7 @@ def build_workflow_from_template(
                 "id": str(gmail_credential_id),
                 "name": gmail_credential_name,
             }
-            logger.info(f"  Set Gmail credential for {node_name}")
+            logger.f(f"  Set Gmail credential for {node_name}")
 
         elif node_type == "@n8n/n8n-nodes-langchain.lmChatOpenAi":
             n["credentials"]["openAiApi"] = {

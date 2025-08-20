@@ -9,7 +9,6 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 
-from backend.routes.gmail_responder_routes import GMAIL_AI_RESPONDER_TEMPLATE
 from database.deps import get_user_id
 from database.db import sb
 from database.sb_utils import get_data, get_error
@@ -21,6 +20,15 @@ router = APIRouter()
 
 TEMPLATE_ID = "gmail-summary"
 TEMPLATE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "templates", "gmail_summary.json")
+
+# Load template once
+try:
+    with open(TEMPLATE_PATH, "r", encoding="utf-8") as f:
+        GMAIL_SUMMARY_TEMPLATE = json.loads(f.read())
+    logger.info("gmail_summary template loaded")
+except Exception as e:
+    logger.error(f"Failed to load gmail_summary template: {e}")
+    GMAIL_SUMMARY_TEMPLATE = None
 
 
 # Load template once
@@ -65,11 +73,11 @@ def _upsert_user_integration_tokens(user_id: str, tokens: dict) -> None:
 # class InstallBody(BaseModel):
 #     templateId: str
 
-@router.post("/workflows/gmail-ai-responder/install")
+@router.post("/workflows/gmail-summary/install")
 def install(user_id: str = Depends(get_user_id)):
     logger.info(f"Install request. templateId={TEMPLATE_ID}, user={user_id}")
     try:
-        if not GMAIL_AI_RESPONDER_TEMPLATE:
+        if not GMAIL_SUMMARY_TEMPLATE:
             raise HTTPException(500, "Template not loaded")
 
         # Check for existing Google tokens
@@ -105,7 +113,7 @@ def install(user_id: str = Depends(get_user_id)):
             user_id=user_id,
             template_id=TEMPLATE_ID,
             integ_row=tokens_row,
-            tpl=GMAIL_AI_RESPONDER_TEMPLATE,
+            tpl=GMAIL_SUMMARY_TEMPLATE,
         )
         return result
 
@@ -171,9 +179,9 @@ def google_callback(code: str, state: str):
             raise HTTPException(400, "Missing tokens after OAuth")
 
         # 5) provision
-        if not GMAIL_AI_RESPONDER_TEMPLATE:
+        if not GMAIL_SUMMARY_TEMPLATE:
             raise HTTPException(500, "Template not loaded")
-        result = provision_in_n8n(user_id=user_id, template_id=TEMPLATE_ID, integ_row=row, tpl=GMAIL_AI_RESPONDER_TEMPLATE)
+        result = provision_in_n8n(user_id=user_id, template_id=TEMPLATE_ID, integ_row=row, tpl=GMAIL_SUMMARY_TEMPLATE)
 
         # 6) redirect back to frontend
         frontend = os.environ.get("FRONTEND_ORIGIN", "http://localhost:3000")

@@ -8,6 +8,9 @@ from database.sb_utils import get_data, get_error
 from thirdPartyIntegrations.google_oauth import  exchange_code_for_tokens
 
 from gmail_responder_routes import _upsert_user_integration_tokens
+from workflows.gmail_ai_labelling.provision_n8n import provision_in_n8n as provision_in_n8n_labelling
+from workflows.gmail_summary.provision_n8n_summary import provision_in_n8n as provision_in_n8n_summary
+from workflows.gmail_ai_responder.provision_n8n_responder import provision_in_n8n as provision_in_n8n_responder
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -51,12 +54,12 @@ def google_callback(code: str, state: str):
             
         # Import the correct provision function
         if template_id == "gmail-ai-responder":
-            from workflows.gmail_ai_responder.provision_n8n_responder import provision_in_n8n
+            result = provision_in_n8n_responder(user_id=user_id, template_id=template_id, integ_row=row, tpl=template)
         elif template_id == "gmail-summary":
-            from workflows.gmail_summary.provision_n8n_summary import provision_in_n8n
+            result = provision_in_n8n_summary(user_id=user_id, template_id=template_id, integ_row=row, tpl=template)
+        elif template_id == "gmail-ai-labelling":
+            result = provision_in_n8n_labelling(user_id=user_id, template_id=template_id, integ_row=row, tpl=template)
             
-        result = provision_in_n8n(user_id=user_id, template_id=template_id, integ_row=row, tpl=template)
-        
         # 6) Redirect back to frontend
         frontend = os.environ.get("FRONTEND_ORIGIN", "http://localhost:3000")
         url = f"{frontend}/dashboard?installed={template_id}&workflowId={result['workflowId']}"
