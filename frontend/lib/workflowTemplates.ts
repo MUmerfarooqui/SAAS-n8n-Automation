@@ -46,36 +46,36 @@ export const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     },
   },
 
-  // NEW: Gmail Labeling Agent
-
   {
-    id: "gmail-ai-summarizer",
-    name: "Gmail AI Summarizer",
-    description: "Automatically summarize incoming emails into short, actionable digests using AI",
+    id: "gmail-ai-labelling",
+    name: "Gmail Labelling Agent",
+    description: "Automatically categorize and label incoming emails using AI based on content and existing labels",
     category: "email-automation",
-    difficulty: "beginner",
-    estimatedSetupTime: 10,
+    difficulty: "intermediate",
+    estimatedSetupTime: 15,
     requiredIntegrations: ["gmail", "openai"],
-    tags: ["email", "ai", "productivity", "summarization"],
-    icon: "📝",
-    useCase: "Get concise summaries of long emails so you can scan and prioritize quickly.",
+    tags: ["email", "ai", "organization", "labelling"],
+    icon: "🏷️",
+    useCase: "Keep your inbox organized by automatically labeling emails based on content, sender, and context. Creates new labels when needed.",
     config: {
-      trigger: { type: "gmail_new_email", filter: "unread" },
+      trigger: { type: "gmail_new_email", poll_interval: "5_minutes" },
       steps: [
-        { action: "extract_email_content" },
-        { action: "summarize_email", ai_enabled: true, model: "gpt-4" },
-        { action: "send_summary", destination: "gmail", method: "forward_to_self" }
-    ],
-    settings: {
-      check_interval: "5_minutes",
-      temperature: 0.3,
-      max_tokens: 200,
-      summary_style: "bullet_points",
-      summary_length: "short"
+        { action: "get_message", source: "gmail" },
+        { action: "read_existing_labels", source: "gmail" },
+        { action: "analyze_email_for_category", ai_enabled: true, model: "gpt-4" },
+        { action: "create_label_if_needed", destination: "gmail" },
+        { action: "apply_label_to_message", destination: "gmail" },
+        { action: "remove_inbox_if_promotional", condition: "is_promotional" }
+      ],
+      settings: {
+        check_interval: "5_minutes",
+        create_sublabels: true,
+        main_ai_label: "AI",
+        remove_inbox_for_promotions: true,
+        label_hierarchy: "maintain_existing_structure"
+      }
     }
-  }
-},
-
+  },
 
   {
     id: 'gmail-summary',

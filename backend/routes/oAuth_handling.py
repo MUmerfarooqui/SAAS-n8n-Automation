@@ -8,7 +8,10 @@ from database.db import sb
 from database.sb_utils import get_data, get_error
 from thirdPartyIntegrations.google_oauth import  exchange_code_for_tokens
 
-from gmail_responder_routes import _upsert_user_integration_tokens
+
+from workflows.gmail_ai_labelling.provision_n8n import provision_in_n8n as provision_in_n8n_labelling
+from workflows.gmail_summary.provision_n8n_summary import provision_in_n8n as provision_in_n8n_summary
+from workflows.gmail_ai_responder.provision_n8n_responder import provision_in_n8n as provision_in_n8n_responder
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
