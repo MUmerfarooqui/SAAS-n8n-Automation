@@ -2,15 +2,39 @@ import os
 import logging
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import RedirectResponse
+import time
 
 from database.db import sb
 from database.sb_utils import get_data, get_error
 from thirdPartyIntegrations.google_oauth import  exchange_code_for_tokens
 
-from gmail_responder_routes import _upsert_user_integration_tokens
-
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+
+
+def _upsert_user_integration_tokens(user_id: str, tokens: dict) -> None:
+    access_token = tokens.get("access_token")
+    refresh_token = tokens.get("refresh_token", "")
+    scope = tokens.get("scope", "")
+    expires_in = int(tokens.get("expires_in", 3600))
+    expiry_ts = int(time.time()) + expires_in
+
+    res = sb.table("user_integrations").upsert(
+        {
+            "user_id": user_id,
+            "provider": "google",
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "scope": scope,
+            "expiry": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(expiry_ts)),
+        },
+        on_conflict="user_id,provider",
+    ).execute()
+    err = get_error(res)
+    if err:
+        raise HTTPException(500, f"Supabase upsert error: {err}")
+
 
 
 @router.get("/oauth/google/callback")

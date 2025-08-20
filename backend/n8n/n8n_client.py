@@ -1,4 +1,3 @@
-# n8n/n8n_client.py
 import os
 import requests
 
@@ -23,12 +22,22 @@ def upsert_gmail_credential(name: str, payload: dict) -> dict:
     import time
     unique_name = f"{name}-{int(time.time())}"
     
+    # Updated payload to match current n8n schema requirements
+    credential_data = {
+        "clientId": payload["clientId"],
+        "clientSecret": payload["clientSecret"],
+        "oauthTokenData": payload["oauthTokenData"],
+        # Add required schema properties
+        "sendAdditionalBodyProperties": False,
+        "additionalBodyProperties": {}
+    }
+    
     r = requests.post(
         f"{N8N_BASE}/api/v1/credentials",
         json={
             "name": unique_name,
             "type": "gmailOAuth2",
-            "data": payload,
+            "data": credential_data,
         },
         headers=_headers(),
         timeout=20,
@@ -99,7 +108,7 @@ def create_workflow(name: str, wf_json: dict) -> int:
             "name": name,
             "nodes": wf_json["nodes"],
             "connections": wf_json["connections"],
-            "settings": wf_json.get("settings", {}),
+            "settings": {},
         },
         headers=_headers(),
         timeout=20,

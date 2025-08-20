@@ -85,7 +85,7 @@
       "parameters": {
         "width": 248.47086922498647,
         "height": 314.47468983163634,
-        "content": "- Starts the workflow every day at 7 AM.\n- Adjust the time if you want the workflow to run at a different hour."
+        "content": "- Starts the workflow every day at 2 PM New York time (10 PM Dubai time).\n- Adjust the time if you want the workflow to run at a different hour."
       },
       "typeVersion": 1
     },
@@ -106,7 +106,7 @@
     },
     {
       "id": "9a82f5e9-7d0b-430f-9dbb-d8ae0b129dad",
-      "name": "Daily 7AM Trigger",
+      "name": "Daily 10PM Trigger",
       "type": "n8n-nodes-base.scheduleTrigger",
       "position": [
         -40,
@@ -116,7 +116,7 @@
         "rule": {
           "interval": [
             {
-              "triggerAtHour": 7
+              "triggerAtHour": 14
             }
           ]
         }
@@ -256,14 +256,10 @@
   ],
   "active": false,
   "pinData": {},
-  "settings": {
-    "timezone": "Asia/Kolkata",
-    "callerPolicy": "workflowsFromSameOwner",
-    "executionOrder": "v1"
-  },
+  "settings": {},
   "versionId": "b18912ed-6c1f-4912-b75a-1553f7620917",
   "connections": {
-    "Daily 7AM Trigger": {
+    "Daily 10PM Trigger": {
       "main": [
         [
           {

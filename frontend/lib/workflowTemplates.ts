@@ -48,7 +48,7 @@ export const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
 
   // NEW: Gmail Summary Agent
   {
-    id: 'gmail-summary-agent',
+    id: 'gmail-summary',
     name: 'Gmail Summary Automation',
     description: 'Create a daily AI summary of your inbox and highlight important messages',
     category: 'productivity',
